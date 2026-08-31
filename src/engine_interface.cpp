@@ -31,15 +31,15 @@ void EngineInterface::init(const std::string & config_file)
 
   if(engine3DConfig.has("MainCamera"))
   {
-    auto camConfig = engine3DConfig("MainCamera");
-
-    auto main_camera = std::make_shared<EngineInterfaceCamera>(camConfig, it_);
+    // The engine already owns a main camera, configure it in place so it stays
+    // part of the render loop and is destroyed with the engine.
+    auto main_camera =
+        std::make_shared<EngineInterfaceCamera>(engine_.getMainCamera(), engine3DConfig("MainCamera"), it_);
     cameras_.push_back(main_camera);
-    engine_.setMainCamera(main_camera->camera().get());
   }
   else
   {
-    mc_rtc::log::error("MainCamera has not been defined in the configuration file");
+    mc_rtc::log::error_and_throw("MainCamera has not been defined in the configuration file");
   }
 
   if(engine3DConfig.has("Cameras"))
@@ -53,7 +53,16 @@ void EngineInterface::init(const std::string & config_file)
   }
   else
   {
-    mc_rtc::log::warning("No 'Cameras' section defined in engine3DConfig.");
+    mc_rtc::log::warning("No 'Cameras' section defined in Engine3d, only the main camera will be streamed");
+  }
+
+  // Every camera frame must exist on the controlled robot
+  for(const auto & cam : cameras_)
+  {
+    if(!gc_->robot().hasFrame(cam->getFrame()))
+    {
+      mc_rtc::log::error_and_throw("Camera '{}' is attached to unknown robot frame '{}'", cam->name(), cam->getFrame());
+    }
   }
 
   // Create rendering engine in Direct Mode
@@ -69,25 +78,36 @@ void EngineInterface::init(const std::string & config_file)
   {
     mc_rtc::log::warning("Mesh model has not been defined in the configuration file");
   }
+
+  mc_rtc::log::info("mc_engine3d initialized with {} camera(s)", cameras_.size());
 }
 
 void EngineInterface::run()
 {
-
   while(gc_->running)
   {
-    engine_.takePicture();
-
     if(!gc_->run())
     {
       gc_->running = false;
+      break;
     }
+
+    // Move every camera to its current frame pose before rendering so the
+    // captured images match the latest controller state.
+    for(auto & cam : cameras_)
+    {
+      cam->transform(gc_->robot().frame(cam->getFrame()).position());
+    }
+
+    // Render once: this fills the framebuffer of the main camera and of every
+    // secondary camera (see Engine3D::setFrame).
+    engine_.takePicture();
 
     for(auto & cam : cameras_)
     {
-      std::cout << cam->camera()->objectName().toStdString() << std::endl;
-      cam->transform(gc_->robot().frame(cam->getFrame()).position());
       cam->publish();
     }
+
+    rclcpp::spin_some(node_);
   }
 }
