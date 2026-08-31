@@ -84,7 +84,7 @@ void EngineInterface::init(const std::string & config_file)
 
 void EngineInterface::run()
 {
-  while(gc_->running)
+  while(gc_->running && rclcpp::ok())
   {
     if(!gc_->run())
     {
@@ -108,6 +108,11 @@ void EngineInterface::run()
       cam->publish();
     }
 
-    rclcpp::spin_some(node_);
+    if(rclcpp::ok())
+    {
+      rclcpp::spin_some(node_);
+    }
   }
+
+  gc_->running = false;
 }
