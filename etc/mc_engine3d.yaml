@@ -1,12 +1,15 @@
 ---
+MainRobot: UR5e
+Enabled: [Posture]
+
 Engine3d:
-  # Point cloud / mesh model rendered in the scene
-  mesh_model: "{path_to}/JRLz2_scaled_clean_sub1mm.pts"
+  # Point cloud (.pts/.bin) or mesh (.obj) rendered in the scene
+  mesh_model: "/home/tduvinage/Dependencies/Engine3D/examples/MultiCamera/Model/Suzanne.obj"
 
   # Main camera: configured in place on the engine, its stream is published on
   # the "MainCamera" image_transport topic.
   MainCamera:
-    frame: "RightHand"
+    frame: "tool0"
     size: [250, 250]
     projection_type: 0
     intrinsics: [256.2125, 195.201, 244.61375, 244.52125]
@@ -15,12 +18,12 @@ Engine3d:
   # named after "name". Every camera is rendered on each engine.takePicture().
   Cameras:
     - name: "Camera1"
-      frame: "LeftHand"
+      frame: "tool0"
       size: [320, 240]
       projection_type: 0
       intrinsics: [256.0, 195.0, 160.0, 120.0]
     - name: "Camera2"
-      frame: "LeftHand"
+      frame: "tool0"
       size: [640, 480]
       projection_type: 1
       intrinsics: [512.0, 390.0, 320.0, 240.0]
