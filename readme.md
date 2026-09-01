@@ -42,6 +42,7 @@ Everything specific to this interface lives in the `Engine3d` section of the
 ```yaml
 Engine3d:
   mesh_model: "/path/to/scene.obj"   # .pts / .bin / .obj / .oct
+  render_rate: 30                    # render/publish thread cap in Hz, 0 = uncapped
 
   MainCamera:                        # the engine main camera, configured in place
     frame: "tool0"
@@ -74,20 +75,27 @@ Engine3d:
 
 ## How it works
 
-Each `run()` iteration:
+Two threads:
 
-1. steps the `mc_rtc` controller (`gc_->run()`);
-2. moves every camera to the current pose of its robot frame;
-3. calls `engine_.takePicture()`, which renders the scene once for **all**
-   cameras and caches each framebuffer;
-4. reads each camera frame back with `Camera::getFrame()` (no current OpenGL
-   context needed) and publishes it as a `bgr8` image.
+* **Control loop** (`run()`) steps the `mc_rtc` controller at its timestep and,
+  each step, hands the current pose of every camera frame to the render thread
+  through a small mutex-guarded snapshot. It never touches the engine.
+* **Render thread** (`renderLoop()`) owns all Engine3D calls. Each iteration it
+  reads the latest pose snapshot, moves the cameras, calls
+  `engine_.takePicture()` (renders the scene once for **all** cameras and caches
+  each framebuffer), then reads each frame back with `Camera::getFrame()` and
+  publishes it as a `bgr8` image stamped with the control time and the camera
+  frame. It is paced by `render_rate`.
+
+This keeps a heavy render (large point clouds) off the control step. Effective
+rates for both loops are logged every 5 s.
 
 `MainCamera` is the camera already owned by the engine, configured in place, so
 it stays part of the render loop; the entries of `Cameras` are created and
-handed over to the engine via `Engine3D::addCamera`.
+handed over to the engine via `Engine3D::addCamera`. The engine and all cameras
+are given the render thread's affinity (`moveToThread`) before it starts, since
+`Engine3D::DIRECT` only dispatches `takePicture()` on its owning thread.
 
 ## Remaining work
 
-* Move capture / publishing to a dedicated thread
 * Expose a scene-model pose (models are currently loaded at their own origin)

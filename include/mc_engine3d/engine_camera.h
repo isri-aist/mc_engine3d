@@ -77,8 +77,11 @@ public:
   /**
    * @brief Capture and publish frame on ROS topic
    * ROS topic name = camera's name
+   *
+   * @param stamp Time of the controller state the frame corresponds to; the
+   * image is published with the camera frame as header frame_id
    */
-  void publish();
+  void publish(const rclcpp::Time & stamp);
 
   /**
    * @brief Get the name of the camera (also used as ROS topic name)

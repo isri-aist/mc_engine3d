@@ -4,7 +4,12 @@ Enabled: [Posture]
 
 Engine3d:
   # Point cloud (.pts/.bin) or mesh (.obj) rendered in the scene
-  mesh_model: "/home/tduvinage/Dependencies/Engine3D/examples/MultiCamera/Model/Suzanne.obj"
+  mesh_model: "/home/tduvinage/devel/sandbox/mc_engine3d/data/JRLz3_clean_scaled_sub1mm.pts"
+
+  # Rendering and stream publishing run on their own thread so a heavy scene
+  # never delays the control step. render_rate caps that thread in Hz
+  # (0 = render as fast as possible). Default: 30
+  render_rate: 30
 
   # Main camera: configured in place on the engine, its stream is published on
   # the "MainCamera" image_transport topic.

@@ -122,12 +122,15 @@ cv::Mat EngineInterfaceCamera::capture()
   return cv::Mat(I.height(), I.width(), CV_8UC3, I.bits(), I.bytesPerLine()).clone();
 }
 
-void EngineInterfaceCamera::publish()
+void EngineInterfaceCamera::publish(const rclcpp::Time & stamp)
 {
   auto img = capture();
   if(!img.empty())
   {
-    auto msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", img).toImageMsg();
+    std_msgs::msg::Header header;
+    header.stamp = stamp;
+    header.frame_id = frame_;
+    auto msg = cv_bridge::CvImage(header, "bgr8", img).toImageMsg();
     pub_.publish(msg);
   }
 }
