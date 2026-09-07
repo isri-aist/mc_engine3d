@@ -2,6 +2,12 @@
 MainRobot: UR5e
 Enabled: [Posture]
 
+# Load the Engine3d renderer alongside the controller. Any mc_rtc interface
+# (mc_rtc_ticker, mc_mujoco, a real-robot interface, ...) can do the same.
+Plugins: [Engine3d]
+
+# Everything specific to the renderer lives in this section, merged into the
+# plugin configuration.
 Engine3d:
   # Point cloud (.pts/.bin) or mesh (.obj) rendered in the scene
   mesh_model: "/home/tduvinage/devel/sandbox/mc_engine3d/data/JRLz3_clean_scaled_sub1mm.pts"
