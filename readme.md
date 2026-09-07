@@ -45,9 +45,10 @@ platform, so it also works headless.
 
 ## Configuration
 
-Everything specific to the plugin lives in the `Engine3d` section of the
-`mc_rtc` configuration (merged into the plugin configuration), or directly in the
-installed `Engine3d.yaml`:
+Everything specific to the plugin lives in the `Engine3d` section, either in the
+`mc_rtc` configuration or in the installed `Engine3d.yaml`. Both use the same
+`Engine3d:` parent node; when the `mc_rtc` configuration has an `Engine3d`
+section it replaces the plugin's own `Engine3d.yaml`.
 
 ```yaml
 Plugins: [Engine3d]

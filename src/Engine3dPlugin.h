@@ -31,7 +31,7 @@ namespace mc_plugin
  */
 struct Engine3dPlugin : public mc_control::GlobalPlugin
 {
-  void init(mc_control::MCGlobalController & controller, const mc_rtc::Configuration & config) override;
+  void init(mc_control::MCGlobalController & controller, const mc_rtc::Configuration & plugin_config) override;
 
   void reset(mc_control::MCGlobalController & controller) override;
 
@@ -55,6 +55,12 @@ private:
   /// Create a QGuiApplication if the host does not already provide one; Engine3D
   /// (DIRECT) needs one for its offscreen GL context
   void ensureQtApp();
+
+  /// Resolve the effective configuration: the plugin's own etc/Engine3d.yaml
+  /// ("Engine3d" section) overridden by the host configuration's "Engine3d"
+  /// section
+  mc_rtc::Configuration resolveConfig(mc_control::MCGlobalController & controller,
+                                      const mc_rtc::Configuration & config) const;
 
   /// Check that every camera frame exists on the controlled robot
   void checkCameraFrames(mc_control::MCGlobalController & controller) const;

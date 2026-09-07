@@ -40,6 +40,24 @@ void Engine3dPlugin::ensureQtApp()
   owned_app_ = std::make_unique<QGuiApplication>(argc, argv);
 }
 
+mc_rtc::Configuration Engine3dPlugin::resolveConfig(mc_control::MCGlobalController & controller,
+                                                   const mc_rtc::Configuration & config) const
+{
+  // The host configuration's "Engine3d" section wins outright when present,
+  // otherwise fall back to the plugin's own etc/Engine3d.yaml (which uses the
+  // same "Engine3d" parent node).
+  const auto & gconfig = controller.configuration().config;
+  if(gconfig.has("Engine3d"))
+  {
+    return gconfig("Engine3d");
+  }
+  if(config.has("Engine3d"))
+  {
+    return config("Engine3d");
+  }
+  return config;
+}
+
 void Engine3dPlugin::checkCameraFrames(mc_control::MCGlobalController & controller) const
 {
   for(const auto & cam : cameras_)
@@ -51,9 +69,11 @@ void Engine3dPlugin::checkCameraFrames(mc_control::MCGlobalController & controll
   }
 }
 
-void Engine3dPlugin::init(mc_control::MCGlobalController & controller, const mc_rtc::Configuration & config)
+void Engine3dPlugin::init(mc_control::MCGlobalController & controller, const mc_rtc::Configuration & plugin_config)
 {
   render_thread_.self = this;
+
+  const auto config = resolveConfig(controller, plugin_config);
 
   ensureQtApp();
 
