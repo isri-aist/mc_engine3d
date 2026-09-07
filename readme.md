@@ -2,6 +2,8 @@
 
 `mc_rtc` global plugin wrapping [Engine3D](https://github.com/PerceptionRobotique/Engine3D).
 
+**Only works with the following PR : https://github.com/PerceptionRobotique/Engine3D/pull/7**
+
 It renders a static scene (point cloud or mesh) from one or more virtual
 cameras rigidly attached to frames of the controlled robot, and publishes each
 camera stream on its own `image_transport` topic while an `mc_rtc` controller
