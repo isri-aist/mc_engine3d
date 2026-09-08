@@ -5,6 +5,9 @@
 #include <chrono>
 #include <cstdlib>
 #include <thread>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 using mc_engine3d::EngineInterfaceCamera;
 
@@ -176,10 +179,13 @@ void Engine3dPlugin::renderLoop()
   // owns it; init() moved the engine and the cameras here before starting.
   engine_->initialize();
 
-  if(!model_path_.empty())
+  if(fs::exists(model_path_))
   {
     mc_rtc::log::info("Loading model : {}", model_path_);
     engine_->openModel(QString::fromStdString(model_path_));
+  }
+  else {
+    mc_rtc::log::error_and_throw("Failed to load model : {}", model_path_);
   }
 
   if(render_rate_ > 0)
