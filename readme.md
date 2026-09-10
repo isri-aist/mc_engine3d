@@ -11,8 +11,7 @@ drives the robot — `mc_rtc_ticker`, `mc_mujoco`, a real-robot interface, ...
 ## Dependencies
 
 * `mc_rtc`
-* `Engine3D` (needs the *secondary camera capture* support, i.e.
-  `Camera::getFrame()` — see `ThomasDuvinage/Engine3D`)
+* `Engine3D`
 * `OpenCV`, `cv_bridge`, `image_transport`, `rclcpp`
 
 ## Build
