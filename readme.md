@@ -85,6 +85,29 @@ Engine3d:
 | `background_color` | no       | `[r, g, b]` in `[0, 1]`, default `[0.5, 0.5, 0.5]`      |
 | `save_path`        | no       | when set, every frame is also written to `<save_path>/<name>.png` |
 
+### Aligning the model with the robot's world frame
+
+`mesh_model` has no pose option: the model is otherwise loaded at its own local
+origin, which usually doesn't coincide with the robot's world origin. This is
+handled by Engine3D itself rather than by this plugin: drop a `.ini`
+file next to the model, named after everything before the model's first `.`
+(e.g. `scene.pts` --> `scene.ini`), with a `wMo` entry:
+
+```ini
+[General]
+wMo="mat4x4((1.000000, 0.000000, 0.000000, 0.000000), (0.000000, 1.000000, 0.000000, 0.000000), (0.000000, 0.000000, 1.000000, 0.000000), (tx, ty, tz, 1.000000))"
+```
+
+`wMo` is the model's pose (rotation + translation) expressed in Engine3D's
+world frame, the same frame the camera poses land in after the plugin's axis
+flip, encoded column-major (each `(...)` is one column; the translation is
+the first three values of the last column).
+
+Engine3D only reads this file once, when the model is loaded. It also writes
+back to it on a clean shutdown, saving whatever pose the model ends up at. As
+long as nothing moves the model at runtime that value stays the one you wrote,
+but keep a backup of a hand-authored file just in case.
+
 ## How it works
 
 Two threads:
@@ -108,7 +131,3 @@ it stays part of the render loop; the entries of `Cameras` are created and
 handed over to the engine via `Engine3D::addCamera`. The engine and all cameras
 are given the render thread's affinity (`moveToThread`) before it starts, since
 `Engine3D::DIRECT` only dispatches `takePicture()` on its owning thread.
-
-## Remaining work
-
-* Expose a scene-model pose (models are currently loaded at their own origin)
